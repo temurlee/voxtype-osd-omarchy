@@ -1,4 +1,6 @@
 import QtQuick
+import Quickshell
+import Quickshell.Io
 
 Item {
     id: root
@@ -9,12 +11,68 @@ Item {
     property var recipe: null
     property string assetRoot: ""
 
+    readonly property string stateHome:
+        Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")
+    readonly property string currentThemePath: stateHome + "/omarchy/current/theme"
+    property var themeColors: ({})
+    property var shellColors: ({})
+
+    function parseThemeColors(raw) {
+        const parsed = {};
+        const lines = String(raw || "").split("\n");
+        for (let i = 0; i < lines.length; ++i) {
+            const match = lines[i].match(/^\s*([A-Za-z0-9_-]+)\s*=\s*["']?(#[0-9A-Fa-f]{6})/);
+            if (match) parsed[match[1]] = match[2];
+        }
+        themeColors = parsed;
+    }
+
+    function parseShellColors(raw) {
+        const parsed = {};
+        const lines = String(raw || "").split("\n");
+        let section = "";
+        for (let i = 0; i < lines.length; ++i) {
+            const line = lines[i].trim();
+            const sectionMatch = line.match(/^\[([A-Za-z0-9_-]+)\]/);
+            if (sectionMatch) {
+                section = sectionMatch[1];
+                continue;
+            }
+            const valueMatch = line.match(/^([A-Za-z0-9_-]+)\s*=\s*["']?([^"'#]+|#[0-9A-Fa-f]{6})["']?/);
+            if (section && valueMatch)
+                parsed[section + "." + valueMatch[1]] = valueMatch[2].trim();
+        }
+        shellColors = parsed;
+    }
+
+    function resolveColor(value, fallback) {
+        let token = String(value || "").trim().split(/\s+/)[0];
+        for (let i = 0; i < 4 && shellColors[token]; ++i)
+            token = String(shellColors[token]).trim().split(/\s+/)[0];
+        if (themeColors[token]) token = themeColors[token];
+        if (!/^#[0-9A-Fa-f]{6}$/.test(token)) token = fallback;
+        return token;
+    }
+
+    function notificationColor(key, fallbackRole, fallback) {
+        return resolveColor(shellColors["notifications." + key] || fallbackRole, fallback);
+    }
+
+    function withAlpha(value, alpha) {
+        const color = Qt.color(value);
+        return Qt.rgba(color.r, color.g, color.b, alpha);
+    }
+
     readonly property color backgroundColor:
-        theme && theme.color ? theme.color("background", "#1a1b26") : "#1a1b26"
+        withAlpha(notificationColor("background", "background", "#1a1b26"),
+                  Number(shellColors["notifications.background-alpha"] || 1))
     readonly property color accentColor:
-        theme && theme.color ? theme.color("accent", "#7aa2f7") : "#7aa2f7"
+        notificationColor("countdown", "accent", "#7aa2f7")
     readonly property color foregroundColor:
-        theme && theme.color ? theme.color("foreground", "#a9afd5") : "#a9afd5"
+        notificationColor("text", "foreground", "#a9afd5")
+    readonly property color borderColor:
+        withAlpha(notificationColor("border", "accent", "#7aa2f7"),
+                  Number(shellColors["notifications.border-alpha"] || 1))
     readonly property color foregroundDim: Qt.rgba(
         foregroundColor.r,
         foregroundColor.g,
@@ -39,6 +97,23 @@ Item {
         [0.24, 0.84, 0.38, 0.90],
         [0.80, 0.46, 0.76, 0.28]
     ]
+
+    FileView {
+        path: root.currentThemePath + "/colors.toml"
+        watchChanges: true
+        printErrors: false
+        onLoaded: root.parseThemeColors(text())
+        onFileChanged: reload()
+    }
+
+    FileView {
+        path: root.currentThemePath + "/shell.toml"
+        watchChanges: true
+        printErrors: false
+        onLoaded: root.parseShellColors(text())
+        onFileChanged: reload()
+        onLoadFailed: root.parseShellColors("")
+    }
 
     function clamp(value, low, high) {
         return Math.max(low, Math.min(high, value));
@@ -98,7 +173,7 @@ Item {
         height: 35
         color: root.backgroundColor
         border.width: 1
-        border.color: root.accentColor
+        border.color: root.borderColor
 
         Text {
             visible: root.listening
