@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+package_dir="/usr/share/voxtype/osd/voxtype-osd-omarchy"
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+config_file="$config_home/voxtype/config.toml"
+state_file="$state_home/voxtype-osd-omarchy/aur-install-state.json"
+helper="/usr/lib/voxtype-osd-omarchy/osd_config.py"
+
+fail() {
+    printf 'Error: %s\n' "$1" >&2
+    exit 1
+}
+
+restart_voxtype() {
+    systemctl --user restart voxtype.service
+    sleep 2
+    systemctl --user is-active --quiet voxtype.service || fail "voxtype.service did not start."
+}
+
+enable_osd() {
+    [[ -f "$package_dir/voxtype-osd.toml" ]] || fail "The OSD package files are missing."
+    command -v voxtype >/dev/null || fail "Voxtype is required."
+    command -v voxtype-audio-bridge >/dev/null || fail "voxtype-audio-bridge is required."
+    if ! command -v quickshell >/dev/null && ! command -v qs >/dev/null; then
+        fail "Quickshell is required."
+    fi
+
+    mkdir -p "$(dirname -- "$config_file")" "$(dirname -- "$state_file")"
+    if [[ -f "$config_file" ]]; then
+        cp "$config_file" "$config_file.bak.voxtype-osd-omarchy.$(date +%Y%m%d-%H%M%S)"
+    fi
+    python "$helper" install \
+        --config "$config_file" \
+        --state "$state_file" \
+        --package "$package_dir"
+    restart_voxtype
+
+    style_file="${XDG_RUNTIME_DIR:?}/voxtype/quickshell-style.json"
+    python - "$style_file" "$package_dir/VoiceOsd.qml" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+style = Path(sys.argv[1])
+expected = sys.argv[2]
+if not style.exists():
+    raise SystemExit("Quickshell style state was not created.")
+actual = json.loads(style.read_text()).get("custom_qml")
+if actual != expected:
+    raise SystemExit(f"Unexpected custom QML path: {actual!r}")
+PY
+    printf '%s\n' "voxtype-osd-omarchy enabled. Use your existing Voxtype shortcut."
+}
+
+disable_osd() {
+    [[ -f "$state_file" ]] || fail "No saved OSD configuration was found."
+    python "$helper" uninstall --config "$config_file" --state "$state_file"
+    restart_voxtype
+    rm -f -- "$state_file"
+    printf '%s\n' "voxtype-osd-omarchy disabled; the previous OSD settings were restored."
+}
+
+status_osd() {
+    style_file="${XDG_RUNTIME_DIR:-}/voxtype/quickshell-style.json"
+    if [[ -n "${XDG_RUNTIME_DIR:-}" && -f "$style_file" ]] && \
+       python - "$style_file" "$package_dir/VoiceOsd.qml" <<'PY'
+import json
+from pathlib import Path
+import sys
+raise SystemExit(0 if json.loads(Path(sys.argv[1]).read_text()).get("custom_qml") == sys.argv[2] else 1)
+PY
+    then
+        printf '%s\n' "enabled"
+    else
+        printf '%s\n' "disabled"
+        return 1
+    fi
+}
+
+case "${1:-}" in
+    enable) enable_osd ;;
+    disable) disable_osd ;;
+    status) status_osd ;;
+    *) printf 'Usage: %s {enable|disable|status}\n' "${0##*/}" >&2; exit 2 ;;
+esac

@@ -36,6 +36,26 @@ systemctl --user restart voxtype.service
 
 ## Install
 
+### Arch Linux / Omarchy
+
+Install from the AUR, then explicitly enable the OSD for your user:
+
+```bash
+yay -S voxtype-osd-omarchy
+voxtype-osd-omarchy enable
+```
+
+Check or disable it with:
+
+```bash
+voxtype-osd-omarchy status
+voxtype-osd-omarchy disable
+```
+
+Run `voxtype-osd-omarchy disable` before removing the AUR package so your previous Voxtype OSD settings can be restored.
+
+### GitHub
+
 Review the repository, then run:
 
 ```bash
