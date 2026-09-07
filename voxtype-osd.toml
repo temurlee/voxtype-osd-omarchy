@@ -1,5 +1,5 @@
 name = "voxtype-osd-omarchy"
-version = "0.3.1"
+version = "0.3.2"
 palette = "omarchy"
 layout = "custom"
 qml_entry = "VoiceOsd.qml"

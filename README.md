@@ -35,7 +35,7 @@ The card is 114×35px, centered 56px above the bottom edge. It follows the activ
 | Audio bars | `notifications.countdown` |
 | Listening and Processing text | `notifications.text` |
 
-The OSD watches the active theme's `colors.toml` and `shell.toml`, so color changes apply without restarting Voxtype.
+The OSD reloads the active theme's `colors.toml` and `shell.toml`, so color changes apply without restarting Voxtype even when Omarchy replaces the theme directory.
 
 ## Requirements
 

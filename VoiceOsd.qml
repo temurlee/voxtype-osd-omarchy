@@ -99,6 +99,7 @@ Item {
     ]
 
     FileView {
+        id: themeColorsFile
         path: root.currentThemePath + "/colors.toml"
         watchChanges: true
         printErrors: false
@@ -107,12 +108,23 @@ Item {
     }
 
     FileView {
+        id: shellColorsFile
         path: root.currentThemePath + "/shell.toml"
         watchChanges: true
         printErrors: false
         onLoaded: root.parseShellColors(text())
         onFileChanged: reload()
         onLoadFailed: root.parseShellColors("")
+    }
+
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            themeColorsFile.reload();
+            shellColorsFile.reload();
+        }
     }
 
     function clamp(value, low, high) {
