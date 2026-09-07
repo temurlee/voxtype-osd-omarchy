@@ -52,7 +52,9 @@ systemctl --user restart voxtype.service
 
 ### Arch Linux / Omarchy
 
-Install from the AUR, then explicitly enable the OSD for your user:
+An AUR package has been prepared, but new AUR account registration is currently closed and the package has not been published. Until it becomes available, use the GitHub installation below.
+
+Once the AUR package is published, installation will be:
 
 ```bash
 yay -S voxtype-osd-omarchy
@@ -66,7 +68,7 @@ voxtype-osd-omarchy status
 voxtype-osd-omarchy disable
 ```
 
-Run `voxtype-osd-omarchy disable` before removing the AUR package so your previous Voxtype OSD settings can be restored.
+Run `voxtype-osd-omarchy disable` before removing the future AUR package so your previous Voxtype OSD settings can be restored.
 
 ### GitHub
 
