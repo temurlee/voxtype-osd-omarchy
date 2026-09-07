@@ -25,7 +25,7 @@ The card is 114×35px, centered 56px above the bottom edge. It uses the Tokyo Ni
 Review the repository, then run:
 
 ```bash
-git clone https://github.com/OWNER/voxtype-osd-omarchy.git
+git clone https://github.com/temurlee/voxtype-osd-omarchy.git
 cd voxtype-osd-omarchy
 ./install.sh
 ```
