@@ -1,0 +1,4 @@
+name = "voxtype-osd-omarchy"
+version = "1.0.0"
+layout = "custom"
+qml_entry = "VoiceOsd.qml"
