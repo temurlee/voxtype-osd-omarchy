@@ -9,6 +9,19 @@ Item {
     property var recipe: null
     property string assetRoot: ""
 
+    readonly property color backgroundColor:
+        theme && theme.color ? theme.color("background", "#1a1b26") : "#1a1b26"
+    readonly property color accentColor:
+        theme && theme.color ? theme.color("accent", "#7aa2f7") : "#7aa2f7"
+    readonly property color foregroundColor:
+        theme && theme.color ? theme.color("foreground", "#a9afd5") : "#a9afd5"
+    readonly property color foregroundDim: Qt.rgba(
+        foregroundColor.r,
+        foregroundColor.g,
+        foregroundColor.b,
+        0.3
+    )
+
     readonly property bool listening:
         daemonState === "recording" || daemonState === "streaming"
     property int rhythmFrame: 0
@@ -83,16 +96,16 @@ Item {
         y: root.height - height - 56
         width: 114
         height: 35
-        color: "#1a1b26"
+        color: root.backgroundColor
         border.width: 1
-        border.color: "#7aa2f7"
+        border.color: root.accentColor
 
         Text {
             visible: root.listening
             x: 11
             anchors.verticalCenter: parent.verticalCenter
             text: "Listening"
-            color: "#a9afd5"
+            color: root.foregroundColor
             font.family: "JetBrainsMono Nerd Font"
             font.pixelSize: 12
             font.weight: Font.Normal
@@ -122,16 +135,21 @@ Item {
 
                 onShimmerChanged: requestPaint()
                 onVisibleChanged: if (visible) requestPaint()
+                onWidthChanged: requestPaint()
+                Connections {
+                    target: root
+                    function onForegroundColorChanged() { processingText.requestPaint(); }
+                }
                 onPaint: {
                     const ctx = getContext("2d");
                     ctx.clearRect(0, 0, width, height);
                     const offset = (-1 + shimmer) * width;
                     const gradient = ctx.createLinearGradient(offset, 0, offset + 2 * width, 0);
-                    gradient.addColorStop(0.00, "rgba(169, 175, 213, 0.3)");
-                    gradient.addColorStop(0.25, "#a9afd5");
-                    gradient.addColorStop(0.50, "rgba(169, 175, 213, 0.3)");
-                    gradient.addColorStop(0.75, "#a9afd5");
-                    gradient.addColorStop(1.00, "rgba(169, 175, 213, 0.3)");
+                    gradient.addColorStop(0.00, root.foregroundDim);
+                    gradient.addColorStop(0.25, root.foregroundColor);
+                    gradient.addColorStop(0.50, root.foregroundDim);
+                    gradient.addColorStop(0.75, root.foregroundColor);
+                    gradient.addColorStop(1.00, root.foregroundDim);
                     ctx.fillStyle = gradient;
                     ctx.font = "12px 'JetBrainsMono Nerd Font'";
                     ctx.textBaseline = "top";
@@ -161,7 +179,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 2
                     height: targetHeight
-                    color: "#7aa2f7"
+                    color: root.accentColor
 
                     Behavior on height {
                         NumberAnimation {

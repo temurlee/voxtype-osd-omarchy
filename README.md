@@ -10,7 +10,21 @@ A compact, audio-reactive Quickshell OSD for Voxtype, designed for Omarchy.
 | `transcribing` | Shimmering `Processing...` label |
 | `idle`, success, cancel | Hidden |
 
-The card is 114×35px, centered 56px above the bottom edge. It uses the Tokyo Night colors `#1A1B26`, `#7AA2F7`, and `#A9AFD5` with JetBrainsMono Nerd Font.
+The card is 114×35px, centered 56px above the bottom edge. It follows the active Omarchy theme using its `background`, `accent`, and `foreground` semantic colors. If theme colors are unavailable, it falls back to the original Tokyo Night colors `#1A1B26`, `#7AA2F7`, and `#A9AFD5`. Typography uses JetBrainsMono Nerd Font.
+
+## Theme integration
+
+| OSD element | Omarchy color |
+|---|---|
+| Card | `background` |
+| Border and audio bars | `accent` |
+| Listening and Processing text | `foreground` |
+
+After switching Omarchy themes, restart Voxtype if the OSD does not update immediately:
+
+```bash
+systemctl --user restart voxtype.service
+```
 
 ## Requirements
 
