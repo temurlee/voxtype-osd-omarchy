@@ -2,6 +2,20 @@
 
 A compact, audio-reactive Quickshell OSD for Voxtype, designed for Omarchy.
 
+## Preview
+
+### Listening
+
+![Listening state on an Omarchy desktop](assets/preview-listening.png)
+
+### Processing
+
+![Processing state on an Omarchy desktop](assets/preview-processing.png)
+
+### Detail
+
+![Close-up of the Listening OSD](assets/preview-detail.png)
+
 ## States
 
 | Voxtype | UI |
