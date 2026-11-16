@@ -179,6 +179,10 @@ Item {
     }
 
     Rectangle {
+        // The host keeps the layer mapped for ~1s after a session so recipe
+        // styles can show a result card. This QML has no result view, so hide
+        // the pill for that hold instead of leaving an empty capsule.
+        visible: root.listening || root.daemonState === "transcribing"
         x: Math.round((root.width - width) / 2)
         y: root.height - height - 56
         width: 114
